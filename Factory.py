@@ -3,6 +3,7 @@ import random
 
 AVERAGE_REPAIR_RATE = 3
 WORKSTATIONS_FAILING_RATES = [ 0.20, 0.10, 0.15, 0.05, 0.07, 0.10 ]
+product_pass = False
 
 
 class WorkStation:
@@ -12,13 +13,11 @@ class WorkStation:
         self.raw_material = raw_material
         self.failing_rate = failing_rate * 10
 
-    def Work(self, busy_time, failing_rate):
-        #Check if machine availabilty
-        with self.machine_available.request() as req:
-            yield req
+    def Work(self, busy_time):
+
             #Does the Machine Fails?
             #Machine Fails
-            if random.randint(0,100) < failing_rate:
+            if random.randint(0,100) < self.failing_rate:
                 yield self.env.timeout(AVERAGE_REPAIR_RATE)
             #Machine works
             #Chec for raw materials in machine
@@ -47,9 +46,24 @@ class Factory(object):
     #TODO
     def GoTroughStations(self):
         for i in range(3):
-            self.work_stations[i].Work()
+            # Check if machine availabilty
+            with self.work_stations[i].machine_available.request() as req:
+                yield req
+                self.work_stations[i].Work(4)
         # yield self.work_station[5].machine_available.req | self.work_station[6].machine_available.req
 
+        #Stations 4,5
+        with self.work_stations[3].machine_available.request() as req4, self.work_stations[4].machine_available.request() as req5:
+            request = yield req4 | req5
+
+            if req4 in request:
+                print("MACHINE 4 IS WORKING")
+                product_pass = not product_pass
+            if req5 in request:
+                print("MACHINE 5 IS WORKING")
+
+        # req1 = t1.request()  # Process requests t1
+        # req2 = t2.request()  # Process requests t2
 
 
 
@@ -58,4 +72,9 @@ class Factory(object):
 
 
 def main():
-    factory = Factory()
+    env = simpy.Environment()
+    factory = Factory(env)
+    env.process(factory.GoTroughStations())
+    env.run(until=50)
+
+main()
