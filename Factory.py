@@ -3,7 +3,7 @@ import random
 
 AVERAGE_REPAIR_RATE = 3
 WORKSTATIONS_FAILING_RATES = [ 0.20, 0.10, 0.15, 0.05, 0.07, 0.10 ]
-product_pass = False
+Maquinas = False
 
 
 class WorkStation:
@@ -58,9 +58,10 @@ class Factory(object):
 
             if req4 in request:
                 print("MACHINE 4 IS WORKING")
-                product_pass = not product_pass
-            if req5 in request:
+                print(not Maquinas)
+            elif req5 in request:
                 print("MACHINE 5 IS WORKING")
+                print(Maquinas)
 
         # req1 = t1.request()  # Process requests t1
         # req2 = t2.request()  # Process requests t2
